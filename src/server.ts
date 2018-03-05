@@ -3,7 +3,7 @@ import dotenv from "dotenv"
 import AYLIENTTextAPI from "aylien_textapi"
 import MClient from "./client"
 import { MongoClient, Collection } from "mongodb"
-; (async () => {
+;(async () => {
   dotenv.config()
   const heartbeat = " \n"
 
@@ -38,7 +38,7 @@ import { MongoClient, Collection } from "mongodb"
     [key: string]: number
   }
 
-  const topChatterers: Top = {}
+  const blacklistedUsers = ["terakilobyte", "psyperl"]
 
   const req = https.request(options, function(res) {
     res.on("data", function(chunk) {
@@ -46,23 +46,12 @@ import { MongoClient, Collection } from "mongodb"
       if (msg !== heartbeat) {
         const msgJson: MsgJSON = JSON.parse(msg)
         const text = msgJson.text.replace(/`{1,3}[\s\S.]*`{1,3}/g, "")
-        const chatterer: DataPoint = {
-          user: msgJson.fromUser.username,
-          text
-        }
-
-        topChatterers[chatterer.user] =
-          (topChatterers[chatterer.user] &&
-            topChatterers[chatterer.user] + 1) ||
-          1
-
-        const top10 = Object.keys(topChatterers)
-          .sort((a, b) => topChatterers[a] - topChatterers[b])
-          .slice(0, 10)
-          .map(elem => elem)
-        console.log(top10)
-        if (Object.keys(topChatterers).length > 10) {
-          if (top10.indexOf(msgJson.fromUser.username) !== -1) {
+        if (text.length > 5) {
+          const chatterer: DataPoint = {
+            user: msgJson.fromUser.username,
+            text
+          }
+          if (blacklistedUsers.indexOf(chatterer.user) === -1) {
             textapi.sentiment(
               {
                 text: msgJson.text
