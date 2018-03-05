@@ -3,7 +3,7 @@ import dotenv from "dotenv"
 import AYLIENTTextAPI from "aylien_textapi"
 import MClient from "./client"
 import { MongoClient, Collection } from "mongodb"
-dotenv.config()
+dotenv.config({ path: "../.env" })
 const heartbeat = " \n"
 
 const options = {
