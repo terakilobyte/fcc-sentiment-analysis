@@ -1,4 +1,4 @@
-import { MongoClient } from "mongodb"
+import { MongoClient, Db } from "mongodb"
 
 export default class MClient {
   /**
@@ -7,9 +7,11 @@ export default class MClient {
    * @param user The username to insert into
    * @returns Response
    */ static async insert(url: string, message: string, user: string) {
-    const coll = await MongoClient.connect(url).then(client =>
-      client.db("sentiment").collection("data")
-    )
+    let mclient: MongoClient
+    const coll = await MongoClient.connect(url).then(client => {
+      mclient = client
+      return client.db("sentiment").collection("data")
+    })
     try {
       coll
         .updateOne(
@@ -18,6 +20,7 @@ export default class MClient {
           { upsert: true }
         )
         .then(res => {})
+        .then(() => mclient.close())
         .catch(err => console.error(err))
     } catch (e) {
       console.error(e)
