@@ -3,7 +3,7 @@ import dotenv from "dotenv"
 import AYLIENTTextAPI from "aylien_textapi"
 import MClient from "./client"
 import { MongoClient, Collection } from "mongodb"
-dotenv.config({ path: "../.env" })
+dotenv.config()
 const heartbeat = " \n"
 
 const options = {
@@ -40,6 +40,7 @@ const req = https.request(options, function(res) {
     const msg = chunk.toString()
     if (msg !== heartbeat) {
       const msgJson: MsgJSON = JSON.parse(msg)
+      console.log(msgJson)
       const text = msgJson.text.replace(/`{1,3}[\s\S.]*`{1,3}/g, "")
       if (text.length > 5) {
         const chatterer: DataPoint = {
@@ -54,8 +55,13 @@ const req = https.request(options, function(res) {
             (err: Error, response: string) => {
               if (err) {
                 console.error(err)
+              } else {
+                MClient.insert(
+                  process.env.MONGODB_URI,
+                  response,
+                  chatterer.user
+                )
               }
-              MClient.insert(process.env.MONGODB_URI, response, chatterer.user)
             }
           )
         }
